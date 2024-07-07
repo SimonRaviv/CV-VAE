@@ -7,7 +7,7 @@ from torchvision.io import write_video
 from torchvision import transforms
 from fire import Fire
 
-def main(vae_path, video_path, save_path, height=576, width=1024):
+def main(vae_path, video_path, save_path, height=576, width=1024, frame_sample_rate=1):
     vae3d = CVVAEModel.from_pretrained(vae_path,subfolder="vae3d",torch_dtype=torch.float16)
     vae3d.requires_grad_(False)
 
@@ -21,7 +21,9 @@ def main(vae_path, video_path, save_path, height=576, width=1024):
 
     fps = video_reader.get_avg_fps()
 
-    video = video_reader.get_batch(list(range(len(video_reader)))).asnumpy()
+    frame_indices = list(range(0,len(video_reader),frame_sample_rate))
+
+    video = video_reader.get_batch(frame_indices).asnumpy()
 
     video = rearrange(torch.tensor(video),'t h w c -> t c h w')
 
