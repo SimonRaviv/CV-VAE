@@ -9,7 +9,7 @@ from torchvision import transforms
 from fire import Fire
 from prettytable import PrettyTable
 
-from models.modeling_vae import CVVAEModel
+from cv_vae.models.modeling_vae import CVVAEModel
 
 
 def log_time_benchmark(ts_1, ts_2, ts_3, ts_4, ts_5):
