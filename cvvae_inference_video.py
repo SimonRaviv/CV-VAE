@@ -23,18 +23,7 @@ def log_time_benchmark(ts_1, ts_2, ts_3, ts_4, ts_5):
     print(table)
 
 
-def main(vae_path, video_path, save_path, height=576, width=1024,
-         frame_sample_rate=1, device='cuda', gpu_id=-1, timeit=False):
-    vae3d = CVVAEModel.from_pretrained(vae_path, subfolder="vae3d", torch_dtype=torch.float16)
-    vae3d.requires_grad_(False).to(device)
-
-    transform = transforms.Compose([
-        transforms.Resize(size=(height, width))
-    ])
-
-    ts_1 = time.time()
-
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+def load_video(video_path, frame_sample_rate, device, gpu_id, transform):
     video_reader_context = gpu(gpu_id) if gpu_id >= 0 else cpu(0)
     video_reader = VideoReader(video_path, ctx=video_reader_context)
 
@@ -47,6 +36,22 @@ def main(vae_path, video_path, save_path, height=576, width=1024,
     frame_end = 1 + (len(video_reader) - 1) // 4 * 4
     video = video / 127.5 - 1.0
     video = video[:, :, :frame_end, :, :]
+    return video_reader, video
+
+
+def main(vae_path, video_path, save_path, height=576, width=1024,
+         frame_sample_rate=1, device='cuda', gpu_id=-1, timeit=False):
+    vae3d = CVVAEModel.from_pretrained(vae_path, subfolder="vae3d", torch_dtype=torch.float16)
+    vae3d.requires_grad_(False).to(device)
+
+    transform = transforms.Compose([
+        transforms.Resize(size=(height, width))
+    ])
+
+    ts_1 = time.time()
+
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    video_reader, video = load_video(video_path, frame_sample_rate, device, gpu_id, transform)
 
     ts_2 = time.time()
 
